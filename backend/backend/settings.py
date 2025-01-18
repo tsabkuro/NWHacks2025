@@ -140,3 +140,28 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOWED_CREDENTIALS = True
+
+AUTH_USER_MODEL = "transactions.User"
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
+REST_AUTH = {
+    'REGISTER_SERIALIZER': 'transactions.serializers.CustomRegisterSerializer',
+}
+
+# Allauth settings for email/username handling
+ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_AUTHENTICATION_METHOD = 'username'
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+
+# REST-auth settings
+REST_USE_JWT = False
