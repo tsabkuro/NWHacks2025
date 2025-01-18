@@ -1,0 +1,16 @@
+.env
+
+#frontend
+frontend/node_modules
+node_modules
+
+#backend
+backend/logfile
+*.log
+*.pot
+*.pyc
+__pycache__
+media
+
+# Backup files # 
+*.bak 
