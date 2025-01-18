@@ -73,6 +73,19 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class SpendingSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Spending model. 
+    Ensures:
+      - Only categories belonging to the user can be used
+      - category can be null (Uncategorized)
+      - description defaults to name if not provided
+    """
+
+    category = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.none(),
+        required=False,
+        allow_null=True
+    )
     category_name = serializers.ReadOnlyField(source='category.name', default=None)
 
     class Meta:
@@ -80,11 +93,28 @@ class SpendingSerializer(serializers.ModelSerializer):
         fields = ['id', 'description', 'name', 'amount', 'date', 'category', 'category_name', 'user']
         read_only_fields = ['id', 'user', 'category_name']
 
+    def __init__(self, *args, **kwargs):
+        """Dynamically restrict 'category' choices to the current user's categories."""
+        super().__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            self.fields['category'].queryset = Category.objects.filter(user=request.user)
+
     def validate_category(self, value):
         if value and value.user != self.context['request'].user:
             raise ValidationError("The selected category does not belong to the authenticated user.")
         return value
 
     def create(self, validated_data):
+        """
+        Assign the spending to the current user and handle default description if empty.
+        """
         validated_data['user'] = self.context['request'].user
+        if not validated_data.get('description'):
+            validated_data['description'] = validated_data.get('name', '')
         return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        return super().update(instance, validated_data)
