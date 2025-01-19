@@ -1,103 +1,85 @@
-import React, { useEffect, useState } from 'react';
-import { Table, Button, Form, Alert } from 'react-bootstrap';
-import api from '../api'; // Your axios instance
+import React, { useState, useEffect } from 'react';
+import { Table, Button, Form, Alert, Modal } from 'react-bootstrap';
+import api from '../api'; // Your Axios instance
 
 const ITEMS_PER_PAGE = 50;
 
-function SpendingsTable() {
-  // State for all spendings
+function SpendingsTable({ categories, addCategory }) {
   const [spendings, setSpendings] = useState([]);
-  // State for categories to populate dropdowns
-  const [categories, setCategories] = useState([]);
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  // Error message state (for display in a Bootstrap Alert)
-  const [errorMessage, setErrorMessage] = useState('');
-
-  // New Spending Form State
   const [newSpending, setNewSpending] = useState({
     name: '',
+    description: '',
     amount: '',
     date: '',
     category: null,
   });
 
-  // Track which spending is being edited
-  // If editSpendingId === sp.id, that row is in "edit mode."
   const [editSpendingId, setEditSpendingId] = useState(null);
-  // Editable fields for the spending in edit mode
   const [editFormData, setEditFormData] = useState({
     name: '',
+    description: '',
     amount: '',
     date: '',
     category: null,
   });
 
-  // Fetch categories & spendings on mount
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Fetch spendings on component mount
   useEffect(() => {
-    fetchCategories();
     fetchSpendings();
   }, []);
-
-  // --- API Calls ---
-  async function fetchCategories() {
-    try {
-      const response = await api.get('/transactions/categories/');
-      setCategories(response.data);
-    } catch (error) {
-      console.error('Fetch categories error:', error);
-      setErrorMessage('Failed to load categories.');
-    }
-  }
 
   async function fetchSpendings() {
     try {
       const response = await api.get('/transactions/spendings/');
       setSpendings(response.data);
     } catch (error) {
-      console.error('Fetch spendings error:', error);
-      setErrorMessage('Failed to load spendings.');
+      console.error('Error fetching spendings:', error);
+      setErrorMessage('Failed to fetch spendings.');
     }
   }
 
-  // --- Create Spending ---
+  // Create a new spending entry
   async function handleCreateSpending(e) {
     e.preventDefault();
-    setErrorMessage(''); // Clear any old error
-
+    setErrorMessage('');
     try {
       await api.post('/transactions/spendings/', {
         ...newSpending,
-        // if category is empty string or null, ensure we send null
         category: newSpending.category || null,
       });
-      // Clear the new form
-      setNewSpending({ name: '', amount: '', date: '', category: null });
-      // Refresh the list
-      fetchSpendings();
+      setNewSpending({ name: '', description: '', amount: '', date: '', category: null });
+      fetchSpendings(); // Refresh spending list
     } catch (error) {
       console.error('Create spending error:', error);
-      setErrorMessage(extractErrorMessage(error, 'Failed to create spending.'));
+      setErrorMessage('Failed to create spending.');
     }
   }
 
-  // --- Edit Spending ---
+  // Start editing a spending entry
   function startEditing(spending) {
     setEditSpendingId(spending.id);
     setEditFormData({
       name: spending.name,
+      description: spending.description || '',
       amount: spending.amount,
       date: spending.date,
-      category: spending.category || null, // if null, no category
+      category: spending.category,
     });
-    setErrorMessage('');
   }
 
+  // Cancel editing
   function cancelEditing() {
     setEditSpendingId(null);
-    setEditFormData({ name: '', amount: '', date: '', category: null });
+    setEditFormData({ name: '', description: '', amount: '', date: '', category: null });
   }
 
+  // Save edited spending entry
   async function saveEditing(spendingId) {
     setErrorMessage('');
     try {
@@ -106,53 +88,73 @@ function SpendingsTable() {
         category: editFormData.category || null,
       });
       setEditSpendingId(null);
-      // Refresh list
       fetchSpendings();
     } catch (error) {
       console.error('Update spending error:', error);
-      setErrorMessage(extractErrorMessage(error, 'Failed to update spending.'));
+      setErrorMessage('Failed to update spending.');
     }
   }
 
-  // --- Helpers ---
-  // Simple function to extract multiple possible errors from the API
-  function extractErrorMessage(error, fallback) {
-    let msg = fallback;
-    if (error.response && error.response.data) {
-      const data = error.response.data;
-      if (typeof data === 'object') {
-        // Flatten all field errors
-        msg = Object.values(data)
-          .flat()
-          .map((m) => m.slice(0, 80)) // up to 80 chars if you prefer
-          .join('\n');
-      } else if (typeof data === 'string') {
-        msg = data.slice(0, 80);
-      }
-    } else if (error.message) {
-      msg = error.message.slice(0, 80);
+  // Handle category selection in the dropdown
+  function handleSelectCategory(value, isEditMode = false) {
+    if (value === 'ADD_CATEGORY') {
+      setShowAddCategoryModal(true);
+      return;
     }
-    return msg;
+    if (isEditMode) {
+      setEditFormData({ ...editFormData, category: value || null });
+    } else {
+      setNewSpending({ ...newSpending, category: value || null });
+    }
   }
+
+    // Handle adding a new category
+    async function handleAddCategory() {
+        setErrorMessage('');
+        try {
+        await addCategory(newCategoryName, null);
+        setNewCategoryName('');
+        setShowAddCategoryModal(false);
+        } catch (error) {
+        console.error('Create category error:', error);
+    
+        // Extract and format the error messages
+        let errorMessages = 'Failed to add category.';
+        if (error.response && error.response.data) {
+            const data = error.response.data;
+    
+            // Check if the response contains field-specific errors
+            if (typeof data === 'object') {
+            errorMessages = Object.values(data)
+                .flat() // Flatten nested arrays
+                .map((msg) => msg.slice(0, 100)) // Truncate messages to 100 characters
+                .join('\n'); // Join messages with newlines
+            } else if (typeof data === 'string') {
+            errorMessages = data.slice(0, 100); // Truncate string errors
+            }
+        } else if (error.message) {
+            errorMessages = error.message.slice(0, 100); // Fallback to generic error
+        }
+    
+        setErrorMessage(errorMessages); // Display the extracted messages
+        }
+    }
 
   // Pagination logic
   const totalItems = spendings.length;
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
-  // Get the spendings for the current page
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentSpendingSlice = spendings.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const currentSpendingSlice = spendings.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   function goToPreviousPage() {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    }
+    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   }
 
   function goToNextPage() {
-    if (currentPage < totalPages) {
-      setCurrentPage((prev) => prev + 1);
-    }
+    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
   }
 
   return (
@@ -165,22 +167,21 @@ function SpendingsTable() {
         </Alert>
       )}
 
-      {/* Spendings Table */}
       <Table bordered hover>
         <thead>
           <tr>
             <th>Name</th>
+            <th>Description</th>
             <th>Amount</th>
             <th>Date</th>
             <th>Category</th>
-            <th style={{ width: '130px' }}>Actions</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {currentSpendingSlice.map((sp) => {
             const isEditing = editSpendingId === sp.id;
             if (isEditing) {
-              // Edit mode row
               return (
                 <tr key={sp.id}>
                   <td>
@@ -189,6 +190,15 @@ function SpendingsTable() {
                       value={editFormData.name}
                       onChange={(e) =>
                         setEditFormData({ ...editFormData, name: e.target.value })
+                      }
+                    />
+                  </td>
+                  <td>
+                    <Form.Control
+                      type="text"
+                      value={editFormData.description}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, description: e.target.value })
                       }
                     />
                   </td>
@@ -214,12 +224,7 @@ function SpendingsTable() {
                   <td>
                     <Form.Select
                       value={editFormData.category || ''}
-                      onChange={(e) =>
-                        setEditFormData({
-                          ...editFormData,
-                          category: e.target.value || null,
-                        })
-                      }
+                      onChange={(e) => handleSelectCategory(e.target.value, true)}
                     >
                       <option value="">-- None --</option>
                       {categories.map((cat) => (
@@ -227,13 +232,13 @@ function SpendingsTable() {
                           {cat.name}
                         </option>
                       ))}
+                      <option value="ADD_CATEGORY">Add category...</option>
                     </Form.Select>
                   </td>
                   <td>
                     <Button
                       variant="success"
                       size="sm"
-                      className="me-2"
                       onClick={() => saveEditing(sp.id)}
                     >
                       Save
@@ -244,39 +249,40 @@ function SpendingsTable() {
                   </td>
                 </tr>
               );
-            } else {
-              // Read-only row
-              return (
-                <tr key={sp.id}>
-                  <td>{sp.name}</td>
-                  <td>${sp.amount}</td>
-                  <td>{sp.date}</td>
-                  <td>
-                    {sp.category_name ? sp.category_name : <em>Uncategorized</em>}
-                  </td>
-                  <td>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => startEditing(sp)}
-                    >
-                      Edit
-                    </Button>
-                  </td>
-                </tr>
-              );
             }
+            return (
+              <tr key={sp.id}>
+                <td>{sp.name}</td>
+                <td>{sp.description}</td>
+                <td>${sp.amount}</td>
+                <td>{sp.date}</td>
+                <td>{sp.category_name || <em>Uncategorized</em>}</td>
+                <td>
+                  <Button variant="primary" size="sm" onClick={() => startEditing(sp)}>
+                    Edit
+                  </Button>
+                </td>
+              </tr>
+            );
           })}
 
-          {/* Row for Adding a New Spending */}
+          {/* Add new spending */}
           <tr>
             <td>
               <Form.Control
                 type="text"
                 placeholder="Name"
                 value={newSpending.name}
+                onChange={(e) => setNewSpending({ ...newSpending, name: e.target.value })}
+              />
+            </td>
+            <td>
+              <Form.Control
+                type="text"
+                placeholder="Description"
+                value={newSpending.description}
                 onChange={(e) =>
-                  setNewSpending({ ...newSpending, name: e.target.value })
+                  setNewSpending({ ...newSpending, description: e.target.value })
                 }
               />
             </td>
@@ -295,20 +301,13 @@ function SpendingsTable() {
               <Form.Control
                 type="date"
                 value={newSpending.date}
-                onChange={(e) =>
-                  setNewSpending({ ...newSpending, date: e.target.value })
-                }
+                onChange={(e) => setNewSpending({ ...newSpending, date: e.target.value })}
               />
             </td>
             <td>
               <Form.Select
                 value={newSpending.category || ''}
-                onChange={(e) =>
-                  setNewSpending({
-                    ...newSpending,
-                    category: e.target.value || null,
-                  })
-                }
+                onChange={(e) => handleSelectCategory(e.target.value)}
               >
                 <option value="">-- None --</option>
                 {categories.map((cat) => (
@@ -316,6 +315,7 @@ function SpendingsTable() {
                     {cat.name}
                   </option>
                 ))}
+                <option value="ADD_CATEGORY">Add category...</option>
               </Form.Select>
             </td>
             <td>
@@ -349,6 +349,32 @@ function SpendingsTable() {
           </Button>
         </div>
       )}
+
+      {/* Add Category Modal */}
+      <Modal show={showAddCategoryModal} onHide={() => setShowAddCategoryModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Add New Category</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group className="mb-3">
+            <Form.Label>Category Name</Form.Label>
+            <Form.Control
+              type="text"
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              placeholder="e.g. Food, Groceries..."
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowAddCategoryModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleAddCategory}>
+            Add Category
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }

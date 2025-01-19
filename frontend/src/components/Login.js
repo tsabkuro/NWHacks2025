@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
+import { Form, Button, Alert } from 'react-bootstrap';
 import api from '../api';
-import './Login.css';
 
 function Login({ onLoginSuccess, onSwitchToRegister }) {
   const [username, setUsername] = useState('');
@@ -13,71 +13,75 @@ function Login({ onLoginSuccess, onSwitchToRegister }) {
       const response = await api.post('/auth/login/', { username, password });
       const { key } = response.data;
       localStorage.setItem('token', key);
-      setError(''); // Clear any previous error
+      setError('');
       onLoginSuccess(key);
     } catch (err) {
-      // Extract error messages from the API response
       let errorMessages = 'Login failed.';
-  
       if (err.response && err.response.data) {
         const data = err.response.data;
-  
-        // Check if the response contains field-specific errors
         if (typeof data === 'object') {
           errorMessages = Object.values(data)
-            .flat() // Flatten nested arrays (e.g., [["Error 1"], ["Error 2"]])
-            .map((msg) => msg.slice(0, 50)) // Truncate each message to 50 characters
-            .join('\n'); // Join messages with newlines
+            .flat()
+            .map((msg) => msg.slice(0, 50))
+            .join('\n');
         } else if (typeof data === 'string') {
-          errorMessages = data.slice(0, 50); // Truncate string errors
+          errorMessages = data.slice(0, 50);
         }
       } else if (err.message) {
-        errorMessages = err.message.slice(0, 50); // Fallback to generic error
+        errorMessages = err.message.slice(0, 50);
       }
-  
       setError(errorMessages);
     }
   }
 
   return (
-    <div className="login-container">
-      <form className="login-form" onSubmit={handleSubmit}>
-        <h2 className="login-title">Welcome Back</h2>
+    <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
+      <div className="bg-white p-4 rounded shadow" style={{ maxWidth: '400px', width: '100%' }}>
+        <h2 className="text-center" style={{ color: '#4caf50' }}>Welcome Back</h2>
         {error && (
-            <div className="error-message">
-                {error.split('\n').map((line, index) => (
-                <p key={index}>{line}</p>
-                ))}
-            </div>
+          <Alert variant="danger" className="mt-3" style={{ whiteSpace: 'pre-wrap' }}>
+            {error}
+          </Alert>
         )}
-        <div className="form-group">
-          <label htmlFor="username">Username</label>
-          <input
-            type="text"
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
+        <Form onSubmit={handleSubmit} className="mt-3">
+          <Form.Group className="mb-3">
+            <Form.Label>Username</Form.Label>
+            <Form.Control
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter username"
+              required
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Password</Form.Label>
+            <Form.Control
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter password"
+              required
+            />
+          </Form.Group>
+          <Button
+            type="submit"
+            style={{ backgroundColor: '#4caf50', border: 'none', width: '100%' }}
+          >
+            Log In
+          </Button>
+        </Form>
+        <div className="text-center mt-3">
+          Don’t have an account?{' '}
+          <Button
+            variant="link"
+            style={{ color: '#4caf50', textDecoration: 'underline' }}
+            onClick={onSwitchToRegister}
+          >
+            Sign Up
+          </Button>
         </div>
-        <div className="form-group">
-          <label htmlFor="password">Password</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" className="login-button">Log In</button>
-      </form>
-      <p className="switch-text">
-        Don’t have an account?{' '}
-        <button type="button" className="switch-button" onClick={onSwitchToRegister}>
-          Sign Up
-        </button>
-      </p>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
+import { Form, Button, Alert } from 'react-bootstrap';
 import api from '../api';
-import './Register.css';
 
 function Register({ onRegisterSuccess, onSwitchToLogin }) {
   const [formData, setFormData] = useState({
@@ -16,7 +16,6 @@ function Register({ onRegisterSuccess, onSwitchToLogin }) {
   async function handleSubmit(e) {
     e.preventDefault();
     const { username, email, firstName, lastName, password1, password2 } = formData;
-  
     try {
       const response = await api.post('/auth/registration/', {
         username,
@@ -28,28 +27,23 @@ function Register({ onRegisterSuccess, onSwitchToLogin }) {
       });
       const { key } = response.data;
       localStorage.setItem('token', key);
-      setError(''); // Clear any previous error
+      setError('');
       onRegisterSuccess(key);
     } catch (err) {
-      // Extract error messages from the API response
       let errorMessages = 'Registration failed.';
-  
       if (err.response && err.response.data) {
         const data = err.response.data;
-  
-        // Check if the response contains field-specific errors
         if (typeof data === 'object') {
           errorMessages = Object.values(data)
-            .flat() // Flatten nested arrays (e.g., [["Error 1"], ["Error 2"]])
-            .map((msg) => msg.slice(0, 100)) // Truncate each message to 50 characters
-            .join('\n'); // Join messages with newlines
+            .flat()
+            .map((msg) => msg.slice(0, 100))
+            .join('\n');
         } else if (typeof data === 'string') {
-          errorMessages = data.slice(0, 50); // Truncate string errors
+          errorMessages = data.slice(0, 50);
         }
       } else if (err.message) {
-        errorMessages = err.message.slice(0, 50); // Fallback to generic error
+        errorMessages = err.message.slice(0, 50);
       }
-  
       setError(errorMessages);
     }
   }
@@ -60,90 +54,95 @@ function Register({ onRegisterSuccess, onSwitchToLogin }) {
   }
 
   return (
-    <div className="register-container">
-      <form className="register-form" onSubmit={handleSubmit}>
-        <h2 className="register-title">Create an Account</h2>
+    <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
+      <div className="bg-white p-4 rounded shadow" style={{ maxWidth: '400px', width: '100%' }}>
+        <h2 className="text-center" style={{ color: '#4caf50' }}>Create an Account</h2>
         {error && (
-            <div className="error-message">
-                {error.split('\n').map((line, index) => (
-                <p key={index}>{line}</p>
-                ))}
-            </div>
+          <Alert variant="danger" className="mt-3" style={{ whiteSpace: 'pre-wrap' }}>
+            {error}
+          </Alert>
         )}
-        <div className="form-group">
-          <label htmlFor="username">Username</label>
-          <input
-            type="text"
-            id="username"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            required
-          />
+        <Form onSubmit={handleSubmit} className="mt-3">
+          <Form.Group className="mb-3">
+            <Form.Label>Username</Form.Label>
+            <Form.Control
+              type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              placeholder="Enter username"
+              required
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Email</Form.Label>
+            <Form.Control
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+              required
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>First Name</Form.Label>
+            <Form.Control
+              type="text"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+              required
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Last Name</Form.Label>
+            <Form.Control
+              type="text"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleChange}
+              required
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Password</Form.Label>
+            <Form.Control
+              type="password"
+              name="password1"
+              value={formData.password1}
+              onChange={handleChange}
+              required
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Confirm Password</Form.Label>
+            <Form.Control
+              type="password"
+              name="password2"
+              value={formData.password2}
+              onChange={handleChange}
+              required
+            />
+          </Form.Group>
+          <Button
+            type="submit"
+            style={{ backgroundColor: '#4caf50', border: 'none', width: '100%' }}
+          >
+            Sign Up
+          </Button>
+        </Form>
+        <div className="text-center mt-3">
+          Already have an account?{' '}
+          <Button
+            variant="link"
+            style={{ color: '#4caf50', textDecoration: 'underline' }}
+            onClick={onSwitchToLogin}
+          >
+            Log In
+          </Button>
         </div>
-        <div className="form-group">
-          <label htmlFor="email">Email</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="firstName">First Name</label>
-          <input
-            type="text"
-            id="firstName"
-            name="firstName"
-            value={formData.firstName}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="lastName">Last Name</label>
-          <input
-            type="text"
-            id="lastName"
-            name="lastName"
-            value={formData.lastName}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="password1">Password</label>
-          <input
-            type="password"
-            id="password1"
-            name="password1"
-            value={formData.password1}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="password2">Confirm Password</label>
-          <input
-            type="password"
-            id="password2"
-            name="password2"
-            value={formData.password2}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <button type="submit" className="register-button">Sign Up</button>
-      </form>
-      <p className="switch-text">
-        Already have an account?{' '}
-        <button type="button" className="switch-button" onClick={onSwitchToLogin}>
-          Log In
-        </button>
-      </p>
+      </div>
     </div>
   );
 }
