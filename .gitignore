@@ -15,3 +15,4 @@ media
 # Backup files # 
 *.bak 
 backend/.DS_Store
+environment_x86.txt
