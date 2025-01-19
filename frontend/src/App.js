@@ -4,7 +4,8 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Categories from './components/Categories';
 import SpendingsTable from './components/SpendingsTable';
-import api from './api'; // Axios instance
+import GPTQuery from './components/GPTQuery';
+import api from './api';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || null);
@@ -124,6 +125,7 @@ function App() {
               />
             </div>
             <SpendingsTable categories={categories} addCategory={addCategory} />
+            <GPTQuery token={token} />
           </>
         ) : isRegistering ? (
           <Register
