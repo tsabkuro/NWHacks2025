@@ -14,7 +14,7 @@ function GPTQuery({ token }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Token ${token}`, // Include the token in the Authorization header
+          Authorization: `Token ${token}`,
         },
         body: JSON.stringify({ prompt }),
       });
