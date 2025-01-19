@@ -14,3 +14,4 @@ media
 
 # Backup files # 
 *.bak 
+backend/.DS_Store
