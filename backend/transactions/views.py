@@ -24,4 +24,4 @@ class SpendingViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Spending.objects.filter(user=self.request.user)
+        return Spending.objects.filter(user=self.request.user).order_by('-date')
