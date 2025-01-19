@@ -63,3 +63,27 @@ h2, h3 {
   .table td {
     vertical-align: middle !important;
   }
+
+  .card {
+    border-radius: 8px;
+    margin-top: 2em;
+    margin-bottom: 2em;
+  }
+  
+  .chart-container {
+    max-width: 600px;
+    margin: 20px auto;
+  }
+  
+  form label {
+    font-weight: 500;
+  }
+  
+  h5.text-center {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .mb-4 {
+    margin-bottom: 1.5rem !important;
+  }
