@@ -35,9 +35,36 @@ function App() {
         parent: parent || null, // Send null if no parent is provided
       });
       setCategories((prevCategories) => [...prevCategories, response.data]); // Append the new category
+      return response.data; // Return the created category for additional use
     } catch (error) {
       console.error('Error adding category:', error);
       throw error; // Propagate error for UI handling
+    }
+  }
+
+  // Update an existing category and reflect it in the state
+  async function updateCategory(categoryId, data) {
+    try {
+      const response = await api.patch(`/transactions/categories/${categoryId}/`, data);
+      setCategories((prevCategories) =>
+        prevCategories.map((cat) => (cat.id === categoryId ? response.data : cat))
+      );
+    } catch (error) {
+      console.error('Error updating category:', error);
+      throw error;
+    }
+  }
+
+  // Delete a category and update the state
+  async function deleteCategory(categoryId) {
+    try {
+      await api.delete(`/transactions/categories/${categoryId}/`);
+      setCategories((prevCategories) =>
+        prevCategories.filter((cat) => cat.id !== categoryId)
+      );
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      throw error;
     }
   }
 
@@ -88,10 +115,14 @@ function App() {
         {token ? (
           <>
             <div className="mb-4">
-              {/* Pass categories and addCategory function to Categories */}
-              <Categories categories={categories} addCategory={addCategory} />
+              {/* Pass updateCategory and deleteCategory functions */}
+              <Categories
+                categories={categories}
+                addCategory={addCategory}
+                updateCategory={updateCategory}
+                deleteCategory={deleteCategory}
+              />
             </div>
-            {/* Pass categories and addCategory function to SpendingsTable */}
             <SpendingsTable categories={categories} addCategory={addCategory} />
           </>
         ) : isRegistering ? (
