@@ -27,8 +27,6 @@ You can interpret partial times. For instance:
 - "this month" => from the first day of the current month to the last day of the current month
 - "in january 2025" => from 2025-01-01 to 2025-01-31
 
-The current month is january 2025
-
 If you cannot parse the date, set start_date and end_date to null.
 If the user does not specify category, set it to "all".
 
@@ -40,6 +38,8 @@ If you cannot parse the question, return:
 
 class GPTQueryHandler:
     def __init__(self, model_path=MODEL_PATH):
+        # mistral-7b-instruct-v0.1.Q4_0.gguf
+        # Llama-3.2-3B-Instruct-Q4_0.gguf
         self.gpt = GPT4All(model_name="mistral-7b-instruct-v0.1.Q4_0.gguf", model_path=model_path, allow_download=False)
 
     def parse_query(self, user_prompt: str) -> dict:

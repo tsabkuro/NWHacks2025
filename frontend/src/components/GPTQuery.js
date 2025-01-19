@@ -32,7 +32,7 @@ function GPTQuery({ token }) {
 
   return (
     <div style={{ maxWidth: "600px", margin: "0 auto" }}>
-      <h3>Ask GPT about your spendings</h3>
+      <h3>Ask our AI bot about your spendings</h3>
       <Form.Group className="mb-3">
         <Form.Label>Query</Form.Label>
         <Form.Control
