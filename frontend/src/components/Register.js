@@ -15,21 +15,42 @@ function Register({ onRegisterSuccess, onSwitchToLogin }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    const { username, email, firstName, lastName, password1, password2 } = formData;
+  
     try {
       const response = await api.post('/auth/registration/', {
-        username: formData.username,
-        email: formData.email,
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        password1: formData.password1,
-        password2: formData.password2,
+        username,
+        email,
+        first_name: firstName,
+        last_name: lastName,
+        password1,
+        password2,
       });
       const { key } = response.data;
       localStorage.setItem('token', key);
-      setError('');
+      setError(''); // Clear any previous error
       onRegisterSuccess(key);
-    } catch {
-      setError('Registration failed. Please check your input.');
+    } catch (err) {
+      // Extract error messages from the API response
+      let errorMessages = 'Registration failed.';
+  
+      if (err.response && err.response.data) {
+        const data = err.response.data;
+  
+        // Check if the response contains field-specific errors
+        if (typeof data === 'object') {
+          errorMessages = Object.values(data)
+            .flat() // Flatten nested arrays (e.g., [["Error 1"], ["Error 2"]])
+            .map((msg) => msg.slice(0, 100)) // Truncate each message to 50 characters
+            .join('\n'); // Join messages with newlines
+        } else if (typeof data === 'string') {
+          errorMessages = data.slice(0, 50); // Truncate string errors
+        }
+      } else if (err.message) {
+        errorMessages = err.message.slice(0, 50); // Fallback to generic error
+      }
+  
+      setError(errorMessages);
     }
   }
 
@@ -42,7 +63,13 @@ function Register({ onRegisterSuccess, onSwitchToLogin }) {
     <div className="register-container">
       <form className="register-form" onSubmit={handleSubmit}>
         <h2 className="register-title">Create an Account</h2>
-        {error && <p className="register-error">{error}</p>}
+        {error && (
+            <div className="error-message">
+                {error.split('\n').map((line, index) => (
+                <p key={index}>{line}</p>
+                ))}
+            </div>
+        )}
         <div className="form-group">
           <label htmlFor="username">Username</label>
           <input

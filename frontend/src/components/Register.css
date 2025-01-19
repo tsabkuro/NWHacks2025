@@ -91,3 +91,11 @@ body {
   .switch-button:hover {
     color: #45a049;
   }
+
+  .error-message {
+    color: red;
+    font-size: 0.9rem;
+    margin-top: 10px;
+    text-align: left; /* Aligns multi-line errors to the left */
+    white-space: pre-wrap; /* Preserves newlines in text */
+  }

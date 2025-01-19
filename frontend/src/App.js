@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Login from './components/Login';
 import Register from './components/Register';
 import Categories from './components/Categories';
-import Spendings from './components/Spendings';
+import SpendingsTable from './components/SpendingsTable'; // <--- new
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || null);
@@ -23,12 +23,11 @@ function App() {
 
   return (
     <div>
-      <h1>My Finance App</h1>
+      <h1>Fiscal.ly</h1>
       {token ? (
         <>
           <button onClick={handleLogout}>Logout</button>
-          <Categories />
-          <Spendings />
+          <SpendingsTable />
         </>
       ) : isRegistering ? (
         <Register
