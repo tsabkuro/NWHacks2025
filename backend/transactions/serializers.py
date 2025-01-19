@@ -9,18 +9,31 @@ class CustomRegisterSerializer(RegisterSerializer):
     last_name = serializers.CharField(required=True)
 
     def validate_email(self, value):
-        """
-        Check that the email is unique.
-        """
         if User.objects.filter(email=value).exists():
             raise ValidationError("A user with this email already exists.")
         return value
 
     def save(self, request):
+        # Create the user via the parent class
         user = super().save(request)
         user.first_name = self.validated_data.get('first_name', '')
         user.last_name = self.validated_data.get('last_name', '')
         user.save()
+
+        # Auto-create default categories
+        default_categories = [
+            "Food",
+            "Housing",
+            "Insurance",
+            "Gifts",
+            "Travel",
+            "Clothing",
+            "Debt",
+            "Other",
+        ]
+        for cat_name in default_categories:
+            Category.objects.create(name=cat_name, user=user)
+
         return user
 
 class CategorySerializer(serializers.ModelSerializer):
