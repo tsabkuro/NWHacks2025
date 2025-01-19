@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Button, Modal, Form, Alert, Dropdown, DropdownButton } from 'react-bootstrap';
+import { Table, Button, Modal, Form, Alert, Dropdown, DropdownButton, Card } from 'react-bootstrap';
 
 function Categories({ categories, addCategory, updateCategory, deleteCategory }) {
+  const [showCategories, setShowCategories] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -11,6 +12,10 @@ function Categories({ categories, addCategory, updateCategory, deleteCategory })
   const [successMessage, setSuccessMessage] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteCategoryId, setDeleteCategoryId] = useState(null);
+
+  function toggleCategories() {
+    setShowCategories(!showCategories);
+  }
 
   function handleShow(category = null) {
     setErrorMessage('');
@@ -85,74 +90,85 @@ function Categories({ categories, addCategory, updateCategory, deleteCategory })
   }
 
   return (
-    <div>
-      <h2>Categories</h2>
-
-      {/* Success Alert */}
-      {successMessage && (
-        <Alert
-          variant="success"
-          onClose={() => setSuccessMessage('')}
-          dismissible
-          className="mb-3"
+    <Card className="p-4 mb-4">
+      <div className="d-flex justify-content-between align-items-center">
+        <h2 className="mb-3">Categories</h2>
+        <Button
+          variant={showCategories ? 'outline-danger' : 'outline-success'}
+          onClick={toggleCategories}
+          size="sm"
         >
-          {successMessage}
-        </Alert>
-      )}
+          {showCategories ? 'Hide' : 'Show'}
+        </Button>
+      </div>
 
-      {/* Error Alert */}
-      {errorMessage && (
-        <Alert
-          variant="danger"
-          onClose={() => setErrorMessage('')}
-          dismissible
-          className="mb-3"
-        >
-          {errorMessage}
-        </Alert>
-      )}
+      {showCategories && (
+        <>
+          {successMessage && (
+            <Alert
+              variant="success"
+              onClose={() => setSuccessMessage('')}
+              dismissible
+              className="mb-3"
+            >
+              {successMessage}
+            </Alert>
+          )}
 
-      <DropdownButton
-        id="category-dropdown"
-        title={selectedCategory ? selectedCategory.name : 'Select a Category'}
-        className="mb-3"
-      >
-        {categories.map((cat) => (
-          <Dropdown.Item key={cat.id} onClick={() => setSelectedCategory(cat)}>
-            {cat.name}
-          </Dropdown.Item>
-        ))}
-      </DropdownButton>
+          {errorMessage && (
+            <Alert
+              variant="danger"
+              onClose={() => setErrorMessage('')}
+              dismissible
+              className="mb-3"
+            >
+              {errorMessage}
+            </Alert>
+          )}
 
-      {selectedCategory && (
-        <div className="category-details mb-2">
-          <p>
-            <strong>Category:</strong> {selectedCategory.name}
-          </p>
-          <p>
-            <strong>Parent:</strong> {selectedCategory.parent_name || '--'}
-          </p>
-          <Button
-            variant="primary"
-            size="sm"
-            className="me-2"
-            onClick={() => handleShow(selectedCategory)}
+          <DropdownButton
+            id="category-dropdown"
+            title={selectedCategory ? selectedCategory.name : 'Select a Category'}
+            className="mb-3"
           >
-            Edit
-          </Button>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() => confirmDelete(selectedCategory.id)}
-          >
-            Delete
-          </Button>
-        </div>
-      )}
+            {categories.map((cat) => (
+              <Dropdown.Item key={cat.id} onClick={() => setSelectedCategory(cat)}>
+                {cat.name}
+              </Dropdown.Item>
+            ))}
+          </DropdownButton>
 
-      <Button variant="success" onClick={() => handleShow()}>
-        Add Category
-      </Button>
+          {selectedCategory && (
+            <div className="category-details mb-4 p-3 border rounded bg-light">
+              <p className="mb-1">
+                <strong>Category:</strong> {selectedCategory.name}
+              </p>
+              <p className="mb-3">
+                <strong>Parent:</strong> {selectedCategory.parent_name || '--'}
+              </p>
+              <Button
+                variant="primary"
+                size="sm"
+                className="me-2"
+                onClick={() => handleShow(selectedCategory)}
+              >
+                Edit
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => confirmDelete(selectedCategory.id)}
+              >
+                Delete
+              </Button>
+            </div>
+          )}
+
+          <Button variant="success" onClick={() => handleShow()}>
+            Add Category
+          </Button>
+        </>
+      )}
 
       {/* Add/Edit Category Modal */}
       <Modal show={showModal} onHide={handleClose}>
@@ -181,10 +197,7 @@ function Categories({ categories, addCategory, updateCategory, deleteCategory })
                 }
               />
             </Form.Group>
-            <Button
-              type="submit"
-              style={{ backgroundColor: '#4caf50', border: 'none' }}
-            >
+            <Button type="submit" className="btn-success">
               {isEditing ? 'Save Changes' : 'Create'}
             </Button>
           </Form>
@@ -212,7 +225,7 @@ function Categories({ categories, addCategory, updateCategory, deleteCategory })
           </Button>
         </Modal.Footer>
       </Modal>
-    </div>
+    </Card>
   );
 }
 

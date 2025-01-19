@@ -6,6 +6,7 @@ import Categories from './components/Categories';
 import SpendingsTable from './components/SpendingsTable';
 import GPTQuery from './components/GPTQuery';
 import api from './api';
+import './App.css';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || null);

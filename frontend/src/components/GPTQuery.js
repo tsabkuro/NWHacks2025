@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Form, Spinner, Alert } from "react-bootstrap";
+import { Form, Button, Spinner, Alert, Card } from "react-bootstrap";
 
 function GPTQuery({ token }) {
   const [prompt, setPrompt] = useState("");
@@ -31,8 +31,8 @@ function GPTQuery({ token }) {
   }
 
   return (
-    <div style={{ maxWidth: "600px", margin: "0 auto" }}>
-      <h3>Ask our AI bot about your spendings</h3>
+    <Card className="p-4 mt-4">
+      <h3 className="mb-3">Ask our AI bot about your spendings</h3>
       <Form.Group className="mb-3">
         <Form.Label>Query</Form.Label>
         <Form.Control
@@ -51,7 +51,7 @@ function GPTQuery({ token }) {
           {response}
         </Alert>
       )}
-    </div>
+    </Card>
   );
 }
 

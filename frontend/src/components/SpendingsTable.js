@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Form, Alert, Modal } from 'react-bootstrap';
+import { Table, Button, Form, Alert, Modal, Card } from 'react-bootstrap';
 import api from '../api'; // Your Axios instance
 
 const ITEMS_PER_PAGE = 50;
@@ -158,7 +158,7 @@ function SpendingsTable({ categories, addCategory }) {
   }
 
   return (
-    <div className="container mt-4">
+    <Card className="p-4">
       <h2>Spendings</h2>
 
       {errorMessage && (
@@ -167,7 +167,7 @@ function SpendingsTable({ categories, addCategory }) {
         </Alert>
       )}
 
-      <Table bordered hover>
+      <Table bordered hover responsive className="mt-3">
         <thead>
           <tr>
             <th>Name</th>
@@ -239,6 +239,7 @@ function SpendingsTable({ categories, addCategory }) {
                     <Button
                       variant="success"
                       size="sm"
+                      className="me-2"
                       onClick={() => saveEditing(sp.id)}
                     >
                       Save
@@ -329,7 +330,7 @@ function SpendingsTable({ categories, addCategory }) {
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="d-flex justify-content-between align-items-center">
+        <div className="d-flex justify-content-between align-items-center mt-3">
           <Button
             variant="outline-primary"
             disabled={currentPage === 1}
@@ -375,7 +376,7 @@ function SpendingsTable({ categories, addCategory }) {
           </Button>
         </Modal.Footer>
       </Modal>
-    </div>
+    </Card>
   );
 }
 
