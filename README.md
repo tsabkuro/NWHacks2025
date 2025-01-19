@@ -43,3 +43,16 @@ AI Integration
 Miscellaneous
 -	Git LFS for handling large model files.
 -	Pillow for image processing (receipt uploads).
+
+Missing Model File: mistral-7b-instruct-v0.1.Q4_0.gguf
+
+The file backend/models/mistral-7b-instruct-v0.1.Q4_0.gguf is not included in the repository because it exceeds GitHub’s file size limits.
+
+How to Obtain the File:
+1. 	Download the model from the GPT4All Models page.
+- Look for the model named mistral-7b-instruct-v0.1.Q4_0.gguf.
+2. Place the downloaded file in the following directory:
+
+``` backend/models/ ```
+
+Ensure the directory structure matches the project’s setup.
