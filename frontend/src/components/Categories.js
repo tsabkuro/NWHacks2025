@@ -1,27 +1,28 @@
 import React, { useState } from 'react';
-import { Table, Button, Modal, Form } from 'react-bootstrap';
+import { Button, Modal, Form, Alert, Dropdown, DropdownButton } from 'react-bootstrap';
 
 function Categories({ categories, addCategory, updateCategory, deleteCategory }) {
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [currentCategory, setCurrentCategory] = useState(null);
   const [name, setName] = useState('');
   const [parent, setParent] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteCategoryId, setDeleteCategoryId] = useState(null);
 
   function handleShow(category = null) {
     setErrorMessage('');
     setShowModal(true);
     if (category) {
-      // If editing, set fields with the selected category's data
       setIsEditing(true);
-      setCurrentCategory(category);
+      setSelectedCategory(category);
       setName(category.name);
       setParent(category.parent || null);
     } else {
-      // If creating, reset fields
       setIsEditing(false);
-      setCurrentCategory(null);
+      setSelectedCategory(null);
       setName('');
       setParent(null);
     }
@@ -32,18 +33,18 @@ function Categories({ categories, addCategory, updateCategory, deleteCategory })
     setName('');
     setParent(null);
     setIsEditing(false);
-    setCurrentCategory(null);
+    setSelectedCategory(null);
   }
 
   async function handleSave(e) {
     e.preventDefault();
     try {
-      if (isEditing && currentCategory) {
-        // Update an existing category
-        await updateCategory(currentCategory.id, { name, parent });
+      if (isEditing && selectedCategory) {
+        await updateCategory(selectedCategory.id, { name, parent });
+        setSuccessMessage('Category updated successfully.');
       } else {
-        // Create a new category
         await addCategory(name, parent);
+        setSuccessMessage('Category created successfully.');
       }
       handleClose();
     } catch (error) {
@@ -66,9 +67,17 @@ function Categories({ categories, addCategory, updateCategory, deleteCategory })
     }
   }
 
-  async function handleDelete(categoryId) {
+  function confirmDelete(categoryId) {
+    setShowDeleteModal(true);
+    setDeleteCategoryId(categoryId);
+  }
+
+  async function handleDelete() {
     try {
-      await deleteCategory(categoryId);
+      await deleteCategory(deleteCategoryId);
+      setSuccessMessage('Category deleted successfully.');
+      setShowDeleteModal(false);
+      setDeleteCategoryId(null);
     } catch (error) {
       console.error('Delete category error:', error);
       setErrorMessage('Failed to delete category.');
@@ -78,45 +87,74 @@ function Categories({ categories, addCategory, updateCategory, deleteCategory })
   return (
     <div>
       <h2>Categories</h2>
-      <Table bordered hover>
-        <thead>
-          <tr>
-            <th>Category Name</th>
-            <th>Parent</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {categories.map((cat) => (
-            <tr key={cat.id}>
-              <td>{cat.name}</td>
-              <td>{cat.parent_name || '--'}</td>
-              <td>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  className="me-2"
-                  onClick={() => handleShow(cat)}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => handleDelete(cat.id)}
-                >
-                  Delete
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+
+      {/* Success Alert */}
+      {successMessage && (
+        <Alert
+          variant="success"
+          onClose={() => setSuccessMessage('')}
+          dismissible
+          className="mb-3"
+        >
+          {successMessage}
+        </Alert>
+      )}
+
+      {/* Error Alert */}
+      {errorMessage && (
+        <Alert
+          variant="danger"
+          onClose={() => setErrorMessage('')}
+          dismissible
+          className="mb-3"
+        >
+          {errorMessage}
+        </Alert>
+      )}
+
+      <DropdownButton
+        id="category-dropdown"
+        title={selectedCategory ? selectedCategory.name : 'Select a Category'}
+        className="mb-3"
+      >
+        {categories.map((cat) => (
+          <Dropdown.Item key={cat.id} onClick={() => setSelectedCategory(cat)}>
+            {cat.name}
+          </Dropdown.Item>
+        ))}
+      </DropdownButton>
+
+      {selectedCategory && (
+        <div className="category-details mb-2">
+          <p>
+            <strong>Category:</strong> {selectedCategory.name}
+          </p>
+          <p>
+            <strong>Parent:</strong> {selectedCategory.parent_name || '--'}
+          </p>
+          <Button
+            variant="primary"
+            size="sm"
+            className="me-2"
+            onClick={() => handleShow(selectedCategory)}
+          >
+            Edit
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => confirmDelete(selectedCategory.id)}
+          >
+            Delete
+          </Button>
+        </div>
+      )}
 
       <Button variant="success" onClick={() => handleShow()}>
         Add Category
       </Button>
 
+      {/* Add/Edit Category Modal */}
       <Modal show={showModal} onHide={handleClose}>
         <Modal.Header closeButton>
           <Modal.Title>{isEditing ? 'Edit Category' : 'Add New Category'}</Modal.Title>
@@ -151,6 +189,28 @@ function Categories({ categories, addCategory, updateCategory, deleteCategory })
             </Button>
           </Form>
         </Modal.Body>
+      </Modal>
+
+      {/* Confirm Delete Modal */}
+      <Modal
+        show={showDeleteModal}
+        onHide={() => setShowDeleteModal(false)}
+        backdrop="static"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Delete</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to delete this category? This action cannot be undone.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleDelete}>
+            Delete
+          </Button>
+        </Modal.Footer>
       </Modal>
     </div>
   );
