@@ -51,6 +51,7 @@ The file backend/models/mistral-7b-instruct-v0.1.Q4_0.gguf is not included in th
 How to Obtain the File:
 1. 	Download the model from the GPT4All Models page.
 - Look for the model named mistral-7b-instruct-v0.1.Q4_0.gguf.
+- Alternatively use this google drive link https://drive.google.com/file/d/1FTq9-xnnhEi1I7p_t8qyYCClb9oUy1bM/view?usp=drive_link
 2. Place the downloaded file in the following directory:
 
 ``` backend/models/ ```
