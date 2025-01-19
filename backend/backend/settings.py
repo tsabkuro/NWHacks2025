@@ -166,3 +166,6 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 
 # REST-auth settings
 REST_USE_JWT = False
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

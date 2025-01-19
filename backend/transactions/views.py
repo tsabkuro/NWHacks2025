@@ -4,9 +4,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Sum, Q
 from datetime import datetime
-from .models import Spending, Category
-from .serializers import SpendingSerializer, CategorySerializer
+from .models import Spending, Category, Receipt
+from .serializers import SpendingSerializer, CategorySerializer, ReceiptSerializer
 from .utils.gpt_utils import GPTQueryHandler
+from rest_framework.parsers import MultiPartParser, FormParser
 
 class CategoryViewSet(viewsets.ModelViewSet):
     """
@@ -106,3 +107,28 @@ def query_spendings(request):
             return Response({"error": "Unknown action."}, status=400)
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_receipt(request):
+    parser_classes = (MultiPartParser, FormParser)
+    if 'image' not in request.FILES:
+        return Response({"error": "No receipt image uploaded."}, status=400)
+
+    image_file = request.FILES['image']
+    receipt = Receipt.objects.create(user=request.user, image=image_file)
+    # Optionally call ML parsing in the future:
+    # parsed_data = parse_receipt(image_file)
+    # receipt.parsed_text = parsed_data
+    # receipt.save()
+
+    return Response({"message": "Receipt uploaded successfully.", "receipt_id": receipt.id})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_receipt(request):
+    serializer = ReceiptSerializer(data=request.data, context={'request': request})
+    if serializer.is_valid():
+        serializer.save(user=request.user)
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)

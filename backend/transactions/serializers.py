@@ -1,8 +1,14 @@
 from rest_framework import serializers
-from .models import Spending, Category, User
+from .models import Spending, Category, User, Receipt
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from rest_framework.exceptions import ValidationError
 from django.db import IntegrityError
+
+class ReceiptSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Receipt
+        fields = ['id', 'image', 'parsed_text', 'created_at']
+        read_only_fields = ['id', 'parsed_text', 'created_at']
 
 class CustomRegisterSerializer(RegisterSerializer):
     first_name = serializers.CharField(required=True)

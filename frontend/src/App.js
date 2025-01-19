@@ -5,6 +5,7 @@ import Register from './components/Register';
 import Categories from './components/Categories';
 import SpendingsTable from './components/SpendingsTable';
 import GPTQuery from './components/GPTQuery';
+import ReceiptUpload from './components/ReceiptUpload';
 import api from './api';
 import './App.css';
 
@@ -118,6 +119,7 @@ function App() {
           <>
             <div className="mb-4">
               {/* Pass updateCategory and deleteCategory functions */}
+              <ReceiptUpload />
               <Categories
                 categories={categories}
                 addCategory={addCategory}

@@ -78,3 +78,15 @@ class Spending(models.Model):
     def __str__(self):
         category_display = " -> ".join(self.display_category())
         return f"{self.description} - ${self.amount} on {self.date} ({category_display})"
+    
+class Receipt(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="receipts")
+    image = models.ImageField(upload_to='receipts/')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    # Future fields for ML parsing results
+    parsed_text = models.TextField(blank=True, null=True)
+    # e.g., predicted_category = models.ForeignKey(Category, ...)
+
+    def __str__(self):
+        return f"Receipt {self.id} for {self.user.username}"
